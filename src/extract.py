@@ -20,3 +20,9 @@ def get_shots(competition_id: int, season_id: int) -> pd.DataFrame:
         all_shots.append(shots)
 
     return pd.concat(all_shots, ignore_index=True)
+
+def get_matches(competition_id: int, season_id: int) -> pd.DataFrame:
+    matches = sb.matches(competition_id=competition_id, season_id=season_id)
+
+
+    return matches[['match_id', 'home_team', 'away_team']]
