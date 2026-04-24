@@ -14,7 +14,7 @@ def simulate_match(match_id: int, engine):
     "SELECT home_team, away_team from matches WHERE match_id=:match_id_p"
     )
     teams_df = pd.read_sql(sql, engine, params={"match_id_p": match_id})
-    teams = teams_df.loc[0, :].values.flatten().tolist()
+    teams = teams_df.iloc[0].tolist()
 
     score = {item: 0 for item in teams}
     for index, row in df.iterrows():

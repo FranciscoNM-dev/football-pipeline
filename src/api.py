@@ -33,7 +33,7 @@ def get_standings(simulations: int = 100):
     sql = sqlalchemy.text(
     "SELECT distinct home_team FROM matches"
     )
-    teams = pd.read_sql(sql, engine)['team'].tolist()
+    teams = pd.read_sql(sql, engine)['home_team'].tolist()
     base_table = {'team': teams, 'points': [0] * len(teams)}
     standings = pd.DataFrame(base_table)
 
@@ -42,6 +42,8 @@ def get_standings(simulations: int = 100):
         points = utils.calculate_points(result)
         for team in list(result.keys()):
             standings.loc[standings.team == team, 'points'] += points[team]
-    return standings.sort_values(by = 'points', ascending = False)
+    
+    final_table = standings.sort_values(by = 'points', ascending = False)
+    return final_table.to_dict(orient='records')
 
 
