@@ -3,23 +3,13 @@ import pandas as pd
 import random
 
 
-def simulate_match(match_id: int, engine):
+def simulate_match(shots_dict, teams):
 
-    sql = sqlalchemy.text(
-    "SELECT * FROM shots WHERE match_id=:match_id_p"
-    )
-    df = pd.read_sql(sql, engine, params={"match_id_p": match_id})
-
-    sql = sqlalchemy.text(
-    "SELECT home_team, away_team from matches WHERE match_id=:match_id_p"
-    )
-    teams_df = pd.read_sql(sql, engine, params={"match_id_p": match_id})
-    teams = teams_df.iloc[0].tolist()
-
-    score = {item: 0 for item in teams}
-    for index, row in df.iterrows():
-        if random.random() <= row['xg']:
-            score[row['team']] += 1
+    score = {team: 0 for team in teams}
+    
+    for row in shots_dict.itertuples():
+        if random.random() <= row.xg:
+            score[row.team] += 1
     return score
 
 def calculate_points(score):

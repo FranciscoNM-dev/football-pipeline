@@ -16,36 +16,46 @@ port = os.getenv('DB_PORT')
 name = os.getenv('DB_NAME')
 engine = sqlalchemy.create_engine(f"postgresql://{user}:{password}@{host}:{port}/{name}")
 
+matches_table = pd.read_sql(sqlalchemy.text("select * from matches"), engine)
+
+shots_table = pd.read_sql(sqlalchemy.text('select * from shots'), engine)
+
+# Agrupamos todos los disparos por partido
+shots_dict = {m_id: group for m_id, group in shots_table.groupby('match_id')}
+#Necesario diccionario de los equipos por si en un partido un equipo no tira
+matches_dict = {r.match_id: [r.home_team, r.away_team] for r in matches_table.itertuples()}
+
 #localhost/simulation/match_id que es el param de abajo
 @app.get("/simulation/{match_id}")
 def simulation_endpoint(match_id: int):
     return utils.simulate_match(match_id, engine)
 
-#localhost/standings?simulations que es el param de abajo
+#localhost/standings?simulations=nSimus que es el param de abajo
 @app.get("/standings")
 def get_standings(simulations: int = 100):
-    sql = sqlalchemy.text(
-    "SELECT distinct match_id FROM shots"
-    )
-    match_ids = pd.read_sql(sql, engine)['match_id'].tolist()
 
-    sql = sqlalchemy.text(
-    "SELECT distinct home_team FROM matches"
-    )
-    teams = pd.read_sql(sql, engine)['home_team'].tolist()
-    base_table = {'team': teams, 'points': [0] * len(teams)}
-    standings = pd.DataFrame(base_table)
+    match_ids = list(shots_dict.keys())
+
+    teams = matches_table['home_team'].unique().tolist()
+    base_table = {}
+    for team in teams:
+        base_table[team] = 0
+    
+
 
     for simulation in range(simulations):
         for id in match_ids:
-            result = utils.simulate_match(id, engine)
+            result = utils.simulate_match(shots_dict[id], matches_dict[id])
             points = utils.calculate_points(result)
             for team in list(result.keys()):
-                standings.loc[standings.team == team, 'points'] += points[team]
+                base_table[team] += points[team]
     
+    results = [{"team": team, "points": round(total / simulations, 2)}
+               for team, total in base_table.items()
+]
+    
+    final_table = sorted(results, key=lambda x: x['points'], reverse=True)
 
-    standings['points'] = standings['points'].apply(lambda x: x / simulations)
-    final_table = standings.sort_values(by = 'points', ascending = False)
-    return final_table.to_dict(orient='records')
+    return final_table
 
 
