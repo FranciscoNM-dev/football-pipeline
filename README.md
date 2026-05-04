@@ -8,7 +8,7 @@ This football pipeline allows the user to perform a post-mortem simulation of th
 - **StatsBomb** — to get the raw data
 - **PostgreSQL + SQLAlchemy** — data storage and retrieval
 - **FastAPI + uvicorn** — API structure to make use of the Data
-- **Docker Compose** — Composer to save the data
+- **Docker Compose** — orchestrates the PostgreSQL container
 
 ## How to run
 ```bash
@@ -27,6 +27,7 @@ uvicorn src.api:app --reload
 - `GET /standings?simulations=N` — returns the standings, with the expected amount of points for each of the teams, all of them sorted by this expected amount to get in what position they 'should have ended'
 
 ## Project structure
+```
 football-pipeline/
 ├── src/
 │   ├── api.py        # FastAPI endpoints
@@ -38,7 +39,7 @@ football-pipeline/
 ├── docker-compose.yml
 ├── main.py           # Pipeline entry point
 └── requirements.txt
-
+```
 ## Next steps
 - More uses off the data used in this project. Top scorers, most assists, expected goals vs goals scored...
 - Develop a frontend to help UI
